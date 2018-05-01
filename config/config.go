@@ -81,8 +81,8 @@ func Read() (Config, error) {
 }
 
 // Load loads jobcan config from env vars or stored file
-func Load() (Config, error) {
-	c := Config{
+func Load() (*Config, error) {
+	ce := &Config{
 		Credential: CredentialConfig{
 			ClientID:    os.Getenv("JOBCAN_CLIENT_ID"),
 			LoginID:     os.Getenv("JOBCAN_LOGIN_ID"),
@@ -91,13 +91,13 @@ func Load() (Config, error) {
 		},
 	}
 
-	if c.valid() {
-		return c, nil
+	if ce.valid() {
+		return ce, nil
 	}
 
-	c, err := Read()
+	cs, err := Read()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read stored credential")
 	}
-	return nil, errors.Errorf("failed to load config from envs nor config file")
+	return &cs, nil
 }
