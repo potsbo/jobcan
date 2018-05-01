@@ -5,7 +5,7 @@ This command can perform a time attendant operation for jobcan. Currently only s
 ## Install
 
 ```
-brew install zaru/jobcan/jobcan
+go get github.com/potsbo/jobcan
 ```
 
 ## Usage
