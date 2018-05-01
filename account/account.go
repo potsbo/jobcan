@@ -17,22 +17,16 @@ import (
 	"gopkg.in/AlecAivazis/survey.v1"
 )
 
-func New() Account {
-
-	config, err := config.Read()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func New(c config.Config) Account {
 	httpClient := client.New()
 
 	u := &user{
-		clientID:   config.Credential.ClientID,
-		loginID:    config.Credential.LoginID,
-		password:   config.Credential.Password,
+		clientID:   c.Credential.ClientID,
+		loginID:    c.Credential.LoginID,
+		password:   c.Credential.Password,
 		httpClient: httpClient,
 	}
-	if config.Credential.AccountType == types.Admin {
+	if c.Credential.AccountType == types.Admin {
 		return &admin{u}
 	}
 
