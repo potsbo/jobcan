@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -10,6 +9,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/Songmu/prompter"
+	"github.com/pkg/errors"
+
 	"github.com/potsbo/jobcan/types"
 )
 
