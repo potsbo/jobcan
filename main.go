@@ -3,9 +3,11 @@ package main
 import (
 	"os"
 
+	"github.com/pkg/errors"
+	"github.com/urfave/cli"
+
 	"github.com/potsbo/jobcan/account"
 	"github.com/potsbo/jobcan/config"
-	"github.com/urfave/cli"
 )
 
 func main() {
@@ -26,7 +28,11 @@ func main() {
 			Name:  "start",
 			Usage: "jobcan start / I will start a job.",
 			Action: func(c *cli.Context) error {
-				a := account.New()
+				cf, err := config.Load()
+				if err != nil {
+					return errors.Wrap(err, "failed to load config")
+				}
+				a := account.New(*cf)
 				a.Login()
 				a.ExecAttendance("work_start")
 				return nil
@@ -36,7 +42,11 @@ func main() {
 			Name:  "end",
 			Usage: "jobcan end / Today's work is over!",
 			Action: func(c *cli.Context) error {
-				a := account.New()
+				cf, err := config.Load()
+				if err != nil {
+					return errors.Wrap(err, "failed to load config")
+				}
+				a := account.New(*cf)
 				a.Login()
 				a.ExecAttendance("work_end")
 				return nil
@@ -46,9 +56,13 @@ func main() {
 			Name:  "list",
 			Usage: "jobcan list / Get your attendance list",
 			Action: func(c *cli.Context) error {
-				a := account.New()
+				cf, err := config.Load()
+				if err != nil {
+					return errors.Wrap(err, "failed to load config")
+				}
+				a := account.New(*cf)
 				a.Login()
-				err := a.ExecGetAttendance()
+				err = a.ExecGetAttendance()
 				if err != nil {
 					return cli.NewExitError(err, 1)
 				}
@@ -59,9 +73,13 @@ func main() {
 			Name:  "show",
 			Usage: "jobcan show [YYYYMMDD] / Show and fix time work for the specified day.",
 			Action: func(c *cli.Context) error {
-				a := account.New()
+				cf, err := config.Load()
+				if err != nil {
+					return errors.Wrap(err, "failed to load config")
+				}
+				a := account.New(*cf)
 				a.Login()
-				err := a.ExecGetAttendanceByDay(c.Args().First())
+				err = a.ExecGetAttendanceByDay(c.Args().First())
 				if err != nil {
 					return cli.NewExitError(err, 1)
 				}
@@ -72,9 +90,13 @@ func main() {
 			Name:  "manhour",
 			Usage: "jobcan manhour [YYYYMM] / Show and fix man-hour management.",
 			Action: func(c *cli.Context) error {
-				a := account.New()
+				cf, err := config.Load()
+				if err != nil {
+					return errors.Wrap(err, "failed to load config")
+				}
+				a := account.New(*cf)
 				a.Login()
-				err := a.ExecGetManHour(c.Args().First())
+				err = a.ExecGetManHour(c.Args().First())
 				if err != nil {
 					return cli.NewExitError(err, 1)
 				}
