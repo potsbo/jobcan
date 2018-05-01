@@ -97,7 +97,7 @@ func Load() (Config, error) {
 
 	c, err := Read()
 	if err != nil {
-		return nil, errors.Wrap("failed to read stored credential")
+		return nil, errors.Wrap(err, "failed to read stored credential")
 	}
 	return nil, errors.Errorf("failed to load config from envs nor config file")
 }
