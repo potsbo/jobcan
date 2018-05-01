@@ -10,7 +10,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/Songmu/prompter"
-	"github.com/zaru/jobcan/types"
+	"github.com/potsbo/jobcan/types"
 )
 
 // Config is command parameters

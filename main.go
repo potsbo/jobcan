@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
+	"github.com/potsbo/jobcan/account"
+	"github.com/potsbo/jobcan/config"
 	"github.com/urfave/cli"
-	"github.com/zaru/jobcan/account"
-	"github.com/zaru/jobcan/config"
 )
 
 func main() {

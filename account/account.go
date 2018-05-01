@@ -11,9 +11,9 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
-	"github.com/zaru/jobcan/client"
-	"github.com/zaru/jobcan/config"
-	"github.com/zaru/jobcan/types"
+	"github.com/potsbo/jobcan/client"
+	"github.com/potsbo/jobcan/config"
+	"github.com/potsbo/jobcan/types"
 	"gopkg.in/AlecAivazis/survey.v1"
 )
 
