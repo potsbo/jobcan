@@ -26,6 +26,26 @@ type CredentialConfig struct {
 	AccountType string
 }
 
+func (c *Config) valid() bool {
+	return c.Credential.valid()
+}
+
+func (c *CredentialConfig) valid() bool {
+	if len(c.ClientID) == 0 {
+		return false
+	}
+	if len(c.LoginID) == 0 {
+		return false
+	}
+	if len(c.Password) == 0 {
+		return false
+	}
+	if len(c.AccountType) == 0 {
+		return false
+	}
+	return true
+}
+
 func configPath() string {
 	// only OSX
 	usr, _ := user.Current()
@@ -57,4 +77,26 @@ func Read() (Config, error) {
 		return config, errors.New("Config file is broken ;; please try `jobcan init`.")
 	}
 	return config, nil
+}
+
+// Load loads jobcan config from env vars or stored file
+func Load() (Config, error) {
+	c := Config{
+		Credential: CredentialConfig{
+			ClientID:    os.Getenv("JOBCAN_CLIENT_ID"),
+			LoginID:     os.Getenv("JOBCAN_LOGIN_ID"),
+			Password:    os.Getenv("JOBCAN_PASSWORD"),
+			AccountType: os.Getenv("JOBCAN_ACCOUNT_TYPE"),
+		},
+	}
+
+	if c.valid() {
+		return c, nil
+	}
+
+	c, err := Read()
+	if err != nil {
+		return nil, errors.Wrap("failed to read stored credential")
+	}
+	return nil, errors.Errorf("failed to load config from envs nor config file")
 }
