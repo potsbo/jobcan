@@ -21,10 +21,10 @@ type Config struct {
 
 // CredentialConfig is jobcan credential
 type CredentialConfig struct {
-	ClientID    string
-	LoginID     string
-	Password    string
-	AccountType string
+	ClientID    string `json:"client_id"`
+	LoginID     string `json:"login_id"`
+	Password    string `json:"password"`
+	AccountType string `json:"account_type"`
 }
 
 func (c *Config) valid() bool {
