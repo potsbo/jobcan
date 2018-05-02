@@ -8,7 +8,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func (u *admin) Login() {
+func (u *admin) Login() error {
 	values := url.Values{}
 	values.Add("client_login_id", u.clientID)
 	values.Add("client_manager_login_id", u.loginID)
