@@ -83,12 +83,9 @@ func trimMetaChars(str string) string {
 	return r.Replace(str)
 }
 
-func (u *user) ExecAttendance(mode string) {
+func (u *user) ExecAttendance(mode string) error {
 	token, groupID := u.fetchTokenAndGroup()
 	u.pushDakoku(mode, token, groupID)
-
-	fmt.Println("done!")
-	fmt.Println("see https://ssl.jobcan.jp/employee/")
 }
 
 func (u *user) ExecGetAttendance() error {
