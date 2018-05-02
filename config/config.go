@@ -91,7 +91,7 @@ func Load() (*Config, error) {
 		},
 	}
 
-	if ce.valid() {
+	if ce.Valid() {
 		return ce, nil
 	}
 
