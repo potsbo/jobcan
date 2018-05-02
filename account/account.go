@@ -2,7 +2,6 @@ package account
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -46,7 +45,7 @@ type Account interface {
 	promptChooseTime(targetTimeLists map[string]string) string
 	promptFixTime() string
 	formatFixTimeParams(doc *goquery.Document) FixTimeParams
-	sendFixTime(params FixTimeParams)
+	sendFixTime(params FixTimeParams) error
 	pushDakoku(mode string, token string, groupID string) error
 	fetchTokenAndGroup() (string, string, error)
 }
@@ -99,7 +98,7 @@ func (u *user) ExecAttendance(mode string) error {
 func (u *user) ExecGetAttendance() error {
 	res, err := u.httpClient.Get("https://ssl.jobcan.jp/employee/attendance")
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to get attendance page")
 	}
 	defer res.Body.Close()
 
@@ -142,7 +141,7 @@ func (u *user) ExecGetAttendanceByDay(day string) error {
 	res, err := u.httpClient.Get(fmt.Sprintf("https://ssl.jobcan.jp/employee/adit/modify?year=%s&month=%s&day=%s",
 		result[0][1], result[0][2], result[0][3]))
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to get modify page")
 	}
 	defer res.Body.Close()
 
@@ -258,7 +257,7 @@ func (u *user) formatFixTimeParams(doc *goquery.Document) FixTimeParams {
 	}
 }
 
-func (u *user) sendFixTime(params FixTimeParams) {
+func (u *user) sendFixTime(params FixTimeParams) error {
 	values := url.Values{}
 	values.Add("token", params.Token)
 	values.Add("delete_minutes", params.DeleteMinute)
@@ -272,12 +271,13 @@ func (u *user) sendFixTime(params FixTimeParams) {
 	values.Add("employee_id", params.EmployeeId)
 	res, err := u.httpClient.PostForm("https://ssl.jobcan.jp/employee/adit/insert/", values)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to post to insert page")
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		log.Fatal("Post error StatusCode=" + string(res.StatusCode))
+		return errors.Wrap(err, "Post error StatusCode="+string(res.StatusCode))
 	}
+	return nil
 }
 
 func (u *user) pushDakoku(mode string, token string, groupID string) error {
