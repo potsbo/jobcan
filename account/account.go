@@ -47,8 +47,8 @@ type Account interface {
 	promptFixTime() string
 	formatFixTimeParams(doc *goquery.Document) FixTimeParams
 	sendFixTime(params FixTimeParams)
-	pushDakoku(mode string, token string, groupID string)
-	fetchTokenAndGroup() (string, string)
+	pushDakoku(mode string, token string, groupID string) error
+	fetchTokenAndGroup() (string, string, error)
 }
 
 type user struct {
@@ -85,8 +85,14 @@ func trimMetaChars(str string) string {
 }
 
 func (u *user) ExecAttendance(mode string) error {
-	token, groupID := u.fetchTokenAndGroup()
-	u.pushDakoku(mode, token, groupID)
+	token, groupID, err := u.fetchTokenAndGroup()
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch token and group")
+	}
+	err = u.pushDakoku(mode, token, groupID)
+	if err != nil {
+		return errors.Wrap(err, "failed to push the button")
+	}
 	return nil
 }
 
@@ -274,7 +280,7 @@ func (u *user) sendFixTime(params FixTimeParams) {
 	}
 }
 
-func (u *user) pushDakoku(mode string, token string, groupID string) {
+func (u *user) pushDakoku(mode string, token string, groupID string) error {
 	values := url.Values{}
 	values.Add("is_yakin", "0")
 	values.Add("adit_item", mode)
@@ -283,14 +289,14 @@ func (u *user) pushDakoku(mode string, token string, groupID string) {
 	values.Add("adit_groupID", groupID)
 	res, err := u.httpClient.PostForm("https://ssl.jobcan.jp/employee/index/adit", values)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to post adit")
 	}
-
 	defer res.Body.Close()
+
 	if res.StatusCode != 200 {
-		log.Fatal("Post error StatusCode=" + string(res.StatusCode))
-		return
+		return errors.Wrap(err, "Login error StatusCode="+string(res.StatusCode))
 	}
+	return nil
 }
 
 func (u *user) fetchTokenAndGroup() (string, string, error) {
