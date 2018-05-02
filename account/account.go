@@ -11,6 +11,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 	"gopkg.in/AlecAivazis/survey.v1"
 
 	"github.com/potsbo/jobcan/client"
@@ -86,6 +87,7 @@ func trimMetaChars(str string) string {
 func (u *user) ExecAttendance(mode string) error {
 	token, groupID := u.fetchTokenAndGroup()
 	u.pushDakoku(mode, token, groupID)
+	return nil
 }
 
 func (u *user) ExecGetAttendance() error {
@@ -291,15 +293,15 @@ func (u *user) pushDakoku(mode string, token string, groupID string) {
 	}
 }
 
-func (u *user) fetchTokenAndGroup() (string, string) {
+func (u *user) fetchTokenAndGroup() (string, string, error) {
 	res, err := u.httpClient.Get("https://ssl.jobcan.jp/employee")
 	if err != nil {
-		log.Fatal(err)
+		return "", "", errors.Wrap(err, "failed to get employee page")
 	}
 	defer res.Body.Close()
 
 	doc, _ := goquery.NewDocumentFromReader(res.Body)
 	token, _ := doc.Find("input[name='token']").Attr("value")
 	groupID, _ := doc.Find("select#adit_groupID option:first-child").Attr("value")
-	return token, groupID
+	return token, groupID, nil
 }
