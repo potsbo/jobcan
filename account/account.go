@@ -11,10 +11,11 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
+	"gopkg.in/AlecAivazis/survey.v1"
+
 	"github.com/potsbo/jobcan/client"
 	"github.com/potsbo/jobcan/config"
 	"github.com/potsbo/jobcan/types"
-	"gopkg.in/AlecAivazis/survey.v1"
 )
 
 func New(c config.Config) Account {
