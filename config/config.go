@@ -16,7 +16,7 @@ import (
 
 // Config is command parameters
 type Config struct {
-	Credential CredentialConfig
+	Credential CredentialConfig `json:"credential"`
 }
 
 // CredentialConfig is jobcan credential
@@ -27,7 +27,7 @@ type CredentialConfig struct {
 	AccountType string `json:"account_type"`
 }
 
-func (c *Config) valid() bool {
+func (c *Config) Valid() bool {
 	return c.Credential.valid()
 }
 
@@ -91,7 +91,7 @@ func Load() (*Config, error) {
 		},
 	}
 
-	if ce.valid() {
+	if ce.Valid() {
 		return ce, nil
 	}
 

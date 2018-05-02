@@ -2,7 +2,6 @@ package account
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,10 +10,12 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
+	"gopkg.in/AlecAivazis/survey.v1"
+
 	"github.com/potsbo/jobcan/client"
 	"github.com/potsbo/jobcan/config"
 	"github.com/potsbo/jobcan/types"
-	"gopkg.in/AlecAivazis/survey.v1"
 )
 
 func New(c config.Config) Account {
@@ -34,8 +35,8 @@ func New(c config.Config) Account {
 }
 
 type Account interface {
-	Login()
-	ExecAttendance(mode string)
+	Login() error
+	ExecAttendance(mode string) error
 	ExecGetAttendance() error
 	ExecGetAttendanceByDay(day string) error
 	ExecGetManHour(date string) error
@@ -44,9 +45,9 @@ type Account interface {
 	promptChooseTime(targetTimeLists map[string]string) string
 	promptFixTime() string
 	formatFixTimeParams(doc *goquery.Document) FixTimeParams
-	sendFixTime(params FixTimeParams)
-	pushDakoku(mode string, token string, groupID string)
-	fetchTokenAndGroup() (string, string)
+	sendFixTime(params FixTimeParams) error
+	pushDakoku(mode string, token string, groupID string) error
+	fetchTokenAndGroup() (string, string, error)
 }
 
 type user struct {
@@ -82,18 +83,22 @@ func trimMetaChars(str string) string {
 	return r.Replace(str)
 }
 
-func (u *user) ExecAttendance(mode string) {
-	token, groupID := u.fetchTokenAndGroup()
-	u.pushDakoku(mode, token, groupID)
-
-	fmt.Println("done!")
-	fmt.Println("see https://ssl.jobcan.jp/employee/")
+func (u *user) ExecAttendance(mode string) error {
+	token, groupID, err := u.fetchTokenAndGroup()
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch token and group")
+	}
+	err = u.pushDakoku(mode, token, groupID)
+	if err != nil {
+		return errors.Wrap(err, "failed to push the button")
+	}
+	return nil
 }
 
 func (u *user) ExecGetAttendance() error {
 	res, err := u.httpClient.Get("https://ssl.jobcan.jp/employee/attendance")
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to get attendance page")
 	}
 	defer res.Body.Close()
 
@@ -136,7 +141,7 @@ func (u *user) ExecGetAttendanceByDay(day string) error {
 	res, err := u.httpClient.Get(fmt.Sprintf("https://ssl.jobcan.jp/employee/adit/modify?year=%s&month=%s&day=%s",
 		result[0][1], result[0][2], result[0][3]))
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to get modify page")
 	}
 	defer res.Body.Close()
 
@@ -252,7 +257,7 @@ func (u *user) formatFixTimeParams(doc *goquery.Document) FixTimeParams {
 	}
 }
 
-func (u *user) sendFixTime(params FixTimeParams) {
+func (u *user) sendFixTime(params FixTimeParams) error {
 	values := url.Values{}
 	values.Add("token", params.Token)
 	values.Add("delete_minutes", params.DeleteMinute)
@@ -266,15 +271,16 @@ func (u *user) sendFixTime(params FixTimeParams) {
 	values.Add("employee_id", params.EmployeeId)
 	res, err := u.httpClient.PostForm("https://ssl.jobcan.jp/employee/adit/insert/", values)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to post to insert page")
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		log.Fatal("Post error StatusCode=" + string(res.StatusCode))
+		return errors.Wrap(err, "Post error StatusCode="+string(res.StatusCode))
 	}
+	return nil
 }
 
-func (u *user) pushDakoku(mode string, token string, groupID string) {
+func (u *user) pushDakoku(mode string, token string, groupID string) error {
 	values := url.Values{}
 	values.Add("is_yakin", "0")
 	values.Add("adit_item", mode)
@@ -283,25 +289,25 @@ func (u *user) pushDakoku(mode string, token string, groupID string) {
 	values.Add("adit_groupID", groupID)
 	res, err := u.httpClient.PostForm("https://ssl.jobcan.jp/employee/index/adit", values)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrap(err, "failed to post adit")
 	}
-
 	defer res.Body.Close()
+
 	if res.StatusCode != 200 {
-		log.Fatal("Post error StatusCode=" + string(res.StatusCode))
-		return
+		return errors.Wrap(err, "Login error StatusCode="+string(res.StatusCode))
 	}
+	return nil
 }
 
-func (u *user) fetchTokenAndGroup() (string, string) {
+func (u *user) fetchTokenAndGroup() (string, string, error) {
 	res, err := u.httpClient.Get("https://ssl.jobcan.jp/employee")
 	if err != nil {
-		log.Fatal(err)
+		return "", "", errors.Wrap(err, "failed to get employee page")
 	}
 	defer res.Body.Close()
 
 	doc, _ := goquery.NewDocumentFromReader(res.Body)
 	token, _ := doc.Find("input[name='token']").Attr("value")
 	groupID, _ := doc.Find("select#adit_groupID option:first-child").Attr("value")
-	return token, groupID
+	return token, groupID, nil
 }
