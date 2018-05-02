@@ -36,7 +36,7 @@ func New(c config.Config) Account {
 
 type Account interface {
 	Login() error
-	ExecAttendance(mode string)
+	ExecAttendance(mode string) error
 	ExecGetAttendance() error
 	ExecGetAttendanceByDay(day string) error
 	ExecGetManHour(date string) error
